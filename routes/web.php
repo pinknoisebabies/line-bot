@@ -1,5 +1,4 @@
 <?php
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,3 +13,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/callback', 'Callback');
+
+Route::get('/callback', 'Callback');
