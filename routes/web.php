@@ -14,6 +14,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/callback', 'Callback');
+Route::post('/callback', 'CallbackController@receive');
 
-Route::get('/callback', 'Callback');
+Route::get('/callback', 'CallbackController@receive');

@@ -4,21 +4,28 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Http\Service\CurlHTTPClient;
+
 use LINE\LINEBot;
-//use Line\LINEBot\Constant\HTTPHeader;
-use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use LINE\LINEBot\Event\MessageEvent;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
 use LINE\LINEBot\MessageBuilder;
 use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
+use LINE\LINEBot\Response;
 
-class Callback extends Controller
+class CallbackController extends Controller
 {
 
     private $httpClient;
     private $bot;
 
-    public function __invoke(Request $request)
+    public function __construct()
+    {
+        $this->httpClient = new CurlHTTPClient(getenv('LINE_Channel_Access_Token'));
+        $this->bot = new LINEBot($this->httpClient, ['channelSecret' => getenv('LINE_Channel_Secret')]);
+    }
+
+    public function receive(Request $request)
     {
         $signature = $request->header('X_LINE_SIGNATURE');
 
@@ -26,9 +33,6 @@ class Callback extends Controller
             return response('Bad Request', 400);
         }
 
-        // TODO ENV
-        $this->httpClient = new CurlHTTPClient('');
-        $this->bot = new LINEBot($this->httpClient, ['channelSecret' => '']);
         $events = $this->bot->parseEventRequest($request->getContent(), $signature);
 
         foreach ($events as $event) {
@@ -41,7 +45,7 @@ class Callback extends Controller
             }
 
             $replyText = $event->getText();
-            $resp = $bot->replyText($event->getReplyToken(), $replyText);
+            $resp = $this->replyText($event->getReplyToken(), $replyText);
             file_put_contents("php://stderr", $resp->getHTTPStatus() . ': ' . $resp->getRawBody());
         }
 
@@ -73,12 +77,9 @@ class Callback extends Controller
      */
     public function replyMessage($replyToken, MessageBuilder $messageBuilder)
     {
-        return $this->httpClient->post($this->endpointBase . '/v2/bot/message/reply', [
+        return $this->httpClient->post('https://api.line.me/v2/bot/message/reply', [
             'replyToken' => $replyToken,
             'messages' => $messageBuilder->buildMessage(),
         ]);
     }
-
-
-
 }
