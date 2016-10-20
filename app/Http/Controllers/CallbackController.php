@@ -41,7 +41,7 @@ class CallbackController extends Controller
                 continue;
             }
 
-            if (strpos($event->getText(), '打刻') === false) {
+            if (strpos($event->getText(), '打刻') !== false) {
                 $now = new \DateTime();
                 $this->httpClient->get(getenv('Adit_URL') . "&year={$now->format('Y')}&month={$now->format('m')}&day={$now->format('d')}&hour={$now->format('H')}&minute={$now->format('i')}");
                 $replyText = '打刻しました！';
