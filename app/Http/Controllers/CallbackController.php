@@ -42,6 +42,7 @@ class CallbackController extends Controller
                 continue;
             }
 
+            file_put_contents("php://stderr", "受け取ったメッセージ: " . $event->getText() . " 判定: " . strpos($event->getText(), '打刻'));
             if (strpos($event->getText(), '打刻')) {
                 $now = new \DateTime();
                 $this->httpClient->get(getenv('Adit_URL') . "&year={$now->format('Y')}&month={$now->format('m')}&day={$now->format('d')}&hour={$now->format('H')}&minute={$now->format('i')}");
