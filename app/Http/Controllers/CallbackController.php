@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Faker\Provider\cs_CZ\DateTime;
 use Illuminate\Http\Request;
 
-use App\Http\Service\CurlHTTPClient;
-
 use LINE\LINEBot;
+use LINE\LINEBot\Constant\HTTPHeader;
 use LINE\LINEBot\Event\MessageEvent;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
-use LINE\LINEBot\MessageBuilder;
-use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
-use LINE\LINEBot\Response;
+use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 
 class CallbackController extends Controller
 {
-
     private $httpClient;
     private $bot;
 
@@ -27,7 +24,8 @@ class CallbackController extends Controller
 
     public function receive(Request $request)
     {
-        $signature = $request->header('X_LINE_SIGNATURE');
+        $header = new HTTPHeader();
+        $signature = $request->header($header::LINE_SIGNATURE);
 
         if (empty($signature)) {
             return response('Bad Request', 400);
@@ -44,42 +42,20 @@ class CallbackController extends Controller
                 continue;
             }
 
-            $replyText = $event->getText();
-            $resp = $this->replyText($event->getReplyToken(), $replyText);
+            if (strpos($event->getText(), '打刻')) {
+                $now = new \DateTime();
+                $this->httpClient->get(getenv('Adit_URL') . "&year={$now->format('Y')}&month={$now->format('m')}&day={$now->format('d')}&hour={$now->format('H')}&minute={$now->format('i')}");
+                $replyText = '打刻しました！';
+            } else {
+                $replyText = 'ん？';
+            }
+
+
+            $resp = $this->bot->replyText($event->getReplyToken(), $replyText);
+
             file_put_contents("php://stderr", $resp->getHTTPStatus() . ': ' . $resp->getRawBody());
         }
 
         return response('OK', 200);
-    }
-
-    /**
-     * Replies text message(s) to destination which is associated with reply token.
-     *
-     * This method receives variable texts. It can send text(s) message as bulk.
-     *
-     * @param string $replyToken Identifier of destination.
-     * @param string $text Text of message.
-     * @param string[] $extraTexts Extra text of message.
-     * @return Response
-     */
-    public function replyText($replyToken, $text, ...$extraTexts)
-    {
-        $textMessageBuilder = new TextMessageBuilder($text, ...$extraTexts);
-        return $this->replyMessage($replyToken, $textMessageBuilder);
-    }
-
-    /**
-     * Replies arbitrary message to destination which is associated with reply token.
-     *
-     * @param string $replyToken Identifier of destination.
-     * @param MessageBuilder $messageBuilder Message builder to send.
-     * @return Response
-     */
-    public function replyMessage($replyToken, MessageBuilder $messageBuilder)
-    {
-        return $this->httpClient->post('https://api.line.me/v2/bot/message/reply', [
-            'replyToken' => $replyToken,
-            'messages' => $messageBuilder->buildMessage(),
-        ]);
     }
 }
