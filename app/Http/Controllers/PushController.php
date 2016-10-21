@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use LINE\LINEBot;
 use LINE\LINEBot\HTTPClient\CurlHTTPClient;
+use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
 use LINE\LINEBot\Response;
 
 class PushController extends Controller
@@ -27,7 +28,7 @@ class PushController extends Controller
         $userId = $request->get('user_id');
         $text = $request->get('text');
 
-        $textMessageBuilder = app('LINE\LINEBot\MessageBuilder\TextMessageBuilder', [$text]);
+        $textMessageBuilder = new TextMessageBuilder($text);
 
         /* @var Response $resp */
         $response = $this->bot->pushMessage($userId, $textMessageBuilder);
