@@ -21,8 +21,8 @@ class CallbackController extends Controller
 
     public function __construct()
     {
-        $this->httpClient = app('CurlHTTPClient', [getenv('LINE_Channel_Access_Token')]);
-        $this->bot = app('LINEBot', [$this->httpClient, ['channelSecret' => getenv('LINE_Channel_Secret')]]);
+        $this->httpClient = app('LINE\LINEBot\HTTPClient\CurlHTTPClient', [getenv('LINE_Channel_Access_Token')]);
+        $this->bot = app('LINE\LINEBot', [$this->httpClient, ['channelSecret' => getenv('LINE_Channel_Secret')]]);
     }
 
     public function receive(Request $request, HTTPHeader $header)
