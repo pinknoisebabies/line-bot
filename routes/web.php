@@ -17,3 +17,5 @@ Route::get('/', function () {
 Route::post('/callback', 'CallbackController@receive');
 
 Route::get('/callback', 'CallbackController@receive');
+
+Route::post('/push', 'PushController@send');
