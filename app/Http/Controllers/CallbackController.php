@@ -9,21 +9,24 @@ use LINE\LINEBot\Constant\HTTPHeader;
 use LINE\LINEBot\Event\MessageEvent;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
 use LINE\LINEBot\HTTPClient\CurlHTTPClient;
+use LINE\LINEBot\Response;
 
 class CallbackController extends Controller
 {
+    /* @var CurlHTTPClient $httpClient */
     private $httpClient;
+
+    /* @var LINEBot $httpClient */
     private $bot;
 
     public function __construct()
     {
-        $this->httpClient = new CurlHTTPClient(getenv('LINE_Channel_Access_Token'));
-        $this->bot = new LINEBot($this->httpClient, ['channelSecret' => getenv('LINE_Channel_Secret')]);
+        $this->httpClient = app('CurlHTTPClient', [getenv('LINE_Channel_Access_Token')]);
+        $this->bot = app('LINEBot', [$this->httpClient, ['channelSecret' => getenv('LINE_Channel_Secret')]]);
     }
 
-    public function receive(Request $request)
+    public function receive(Request $request, HTTPHeader $header)
     {
-        $header = new HTTPHeader();
         $signature = $request->header($header::LINE_SIGNATURE);
 
         if (empty($signature)) {
@@ -49,7 +52,7 @@ class CallbackController extends Controller
                 $replyText = 'ん？';
             }
 
-
+            /* @var Response $resp */
             $resp = $this->bot->replyText($event->getReplyToken(), $replyText);
 
             file_put_contents("php://stderr", $resp->getHTTPStatus() . ': ' . $resp->getRawBody());
